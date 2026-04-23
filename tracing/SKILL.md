@@ -3,7 +3,7 @@ name: tracing
 user-prompt: "Instrument my code with LangWatch"
 description: Add LangWatch tracing and observability to your code. Use for both onboarding (instrument an entire codebase) and targeted operations (add tracing to a specific function or module). Supports Python and TypeScript with all major frameworks.
 license: MIT
-compatibility: Requires Node.js for MCP setup. Works with Claude Code and similar coding agents.
+compatibility: Works with Claude Code and similar coding agents. The `langwatch` CLI is the only interface.
 ---
 
 # Add LangWatch Tracing to Your Code
@@ -20,54 +20,34 @@ If the user's request is **specific** ("add tracing to the payment function", "t
 - Add tracing only where requested
 - Verify the instrumentation works in context
 
-## Detect Context
+This skill is code-only — there is no platform path for tracing. If the user has no codebase, explain that tracing requires code instrumentation.
 
-This skill is code-only — there is no platform path for tracing. If the user has no codebase, explain that tracing requires code instrumentation and point them to the LangWatch docs.
+## Step 1: Read the Integration Docs
 
-## Step 1: Set up the LangWatch MCP
+See [CLI Setup](_shared/cli-setup.md).
 
-First, install the LangWatch MCP server so you have access to framework-specific documentation:
+Then fetch the integration guide for this project's framework:
 
-See [MCP Setup](_shared/mcp-setup.md) for installation instructions.
-
-If MCP installation fails, see [docs fallback](_shared/llms-txt-fallback.md) to fetch docs directly via URLs.
-
-## Step 2: Get the API Key
-
-See [API Key Setup](_shared/api-key-setup.md).
-
-Add the API key to the project's `.env` file:
-```
-LANGWATCH_API_KEY=your-key-here
-```
-
-## Step 3: Read the Integration Docs
-
-Use the LangWatch MCP to fetch the correct integration guide for this project:
-
-- Call `fetch_langwatch_docs` with no arguments to see the docs index
-- Find the integration guide matching the project's framework (OpenAI, LangGraph, Vercel AI, Agno, Mastra, etc.)
-- Read the specific integration page for step-by-step instructions
-
-CRITICAL: Do NOT guess how to instrument. Read the actual documentation for the specific framework. Different frameworks have different instrumentation patterns.
-
-## Step 4: Install the LangWatch SDK
-
-For Python:
 ```bash
-pip install langwatch
-# or: uv add langwatch
+langwatch docs integration/python/guide        # Python (general)
+langwatch docs integration/typescript/guide    # TypeScript (general)
+langwatch docs integration/python/langgraph    # Framework-specific (example)
 ```
 
-For TypeScript:
-```bash
-npm install langwatch
-# or: pnpm add langwatch
-```
+Pick the page matching the project's framework (OpenAI, LangGraph, Vercel AI, Agno, Mastra, etc.) and read it before writing any code.
 
-## Step 5: Add Instrumentation
+CRITICAL: Do NOT guess how to instrument. Different frameworks have different instrumentation patterns; always read the framework-specific guide first.
 
-Follow the integration guide you read in Step 3. The general pattern is:
+## Step 2: Install the LangWatch SDK
+
+For Python: `pip install langwatch` (or `uv add langwatch`).
+For TypeScript: `npm install langwatch` (or `pnpm add langwatch`).
+
+If install fails due to peer dependency conflicts, widen the conflicting range and retry — do NOT silently skip.
+
+## Step 3: Add Instrumentation
+
+Follow the integration guide you read in Step 1. The general shape is:
 
 **Python:**
 ```python
@@ -76,8 +56,7 @@ langwatch.setup()
 
 @langwatch.trace()
 def my_function():
-    # your existing code
-    pass
+    ...
 ```
 
 **TypeScript:**
@@ -86,15 +65,19 @@ import { LangWatch } from "langwatch";
 const langwatch = new LangWatch();
 ```
 
-IMPORTANT: The exact pattern depends on the framework. Always follow the docs, not these examples.
+The exact pattern depends on the framework — follow the docs, not these examples.
 
-## Step 6: Verify
+## Step 4: Verify
 
-Run the application and check that traces appear in your LangWatch dashboard at https://app.langwatch.ai
+Do NOT consider the work complete without verifying. In order:
+
+1. Confirm dependencies installed cleanly.
+2. Run the agent with a test input that produces at least one trace (study how the framework starts; only give up if it requires infrastructure you cannot spin up).
+3. Check traces arrived: `langwatch trace search --limit 5`.
+4. If verification isn't possible (no shell access, can't run the code, missing external services), tell the user exactly what to check in their LangWatch dashboard and what you couldn't verify and why.
 
 ## Common Mistakes
 
-- Do NOT invent instrumentation patterns — always read the docs for the specific framework
-- Do NOT skip the `langwatch.setup()` call in Python
-- Do NOT forget to add LANGWATCH_API_KEY to .env
-- Do NOT use `platform_` MCP tools — this skill is about adding code, not creating platform resources
+- Do NOT invent instrumentation patterns — read the framework-specific doc
+- Do NOT skip `langwatch.setup()` in Python
+- Do NOT skip Step 1 — instrumentation patterns vary across OpenAI/LangGraph/Vercel/Mastra/Agno and guessing breaks subtly

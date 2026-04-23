@@ -3,7 +3,7 @@ name: prompts
 user-prompt: "Version my prompts with LangWatch"
 description: Version and manage your agent's prompts with LangWatch Prompts CLI. Use for both onboarding (set up prompt versioning for an entire codebase) and targeted operations (version a specific prompt, create a new prompt version). Supports Python and TypeScript.
 license: MIT
-compatibility: Requires Node.js for MCP setup. Works with Claude Code and similar coding agents.
+compatibility: Works with Claude Code and similar coding agents. The `langwatch` CLI is the only interface.
 ---
 
 # Version Your Prompts with LangWatch Prompts CLI
@@ -21,100 +21,97 @@ If the user's request is **specific** ("version this prompt", "create a new prom
 - Create or update the managed prompt
 - Update the relevant code to use `langwatch.prompts.get()`
 
-## Detect Context
-
-This skill is primarily code-path (CLI + SDK). Platform MCP tools exist for prompt management (`platform_create_prompt`, `platform_update_prompt`, etc.) but users typically manage prompts directly in the UI. If the user has no codebase and wants to create prompts on the platform, use the `platform_create_prompt` MCP tool instead.
-
 ## Plan Limits
 
-See [Plan Limits](_shared/plan-limits.md) for how to handle free plan limits gracefully. The free plan has a limited number of prompts. Work within the limits and show value before suggesting an upgrade. Do NOT try to work around limits.
+See [Plan Limits](_shared/plan-limits.md).
 
-## Step 1: Set up the LangWatch MCP
+## Step 1: Read the Prompts CLI Docs
 
-First, install the LangWatch MCP server so you have access to Prompts CLI documentation:
+See [CLI Setup](_shared/cli-setup.md).
 
-See [MCP Setup](_shared/mcp-setup.md) for installation instructions.
-
-If MCP installation fails, see [docs fallback](_shared/llms-txt-fallback.md) to fetch docs directly via URLs.
-
-## Step 2: Read the Prompts CLI Docs
-
-Use the LangWatch MCP to fetch the Prompts CLI documentation:
-
-- Call `fetch_langwatch_docs` with no arguments to see the docs index
-- Find the Prompts CLI page and read it for step-by-step instructions
-
-CRITICAL: Do NOT guess how to use the Prompts CLI. Read the actual documentation first. The CLI has specific commands and workflows that must be followed exactly.
-
-## Step 3: Install and Authenticate the LangWatch CLI
+Then specifically read the Prompts CLI guide:
 
 ```bash
-npm install -g langwatch
-langwatch login
+langwatch docs prompt-management/cli
 ```
 
-## Step 4: Initialize Prompts in the Project
+CRITICAL: Do NOT guess how to use the Prompts CLI. Read the docs first.
+
+## Step 2: Initialize Prompts in the Project
 
 ```bash
 langwatch prompt init
 ```
 
-This creates a `prompts.json` config and a `prompts/` directory in the project root.
+Creates a `prompts.json` config and a `prompts/` directory in the project root.
 
-## Step 5: Create Prompts for Each Hardcoded Prompt in the Codebase
+## Step 3: Create a Managed Prompt for Each Hardcoded Prompt
 
-Scan the codebase for hardcoded prompt strings (system messages, instructions, etc.) and create a managed prompt for each one:
+Scan the codebase for hardcoded prompt strings (system messages, instructions). For each:
 
 ```bash
 langwatch prompt create <name>
 ```
 
-This creates a `.prompt.yaml` file inside the `prompts/` directory.
+Edit the generated `.prompt.yaml` file to match the original prompt content.
 
-## Step 6: Update Application Code to Use Managed Prompts
+## Step 4: Update Application Code
 
 Replace every hardcoded prompt string with a call to `langwatch.prompts.get()`.
 
-### BAD (Python) -- hardcoded prompt:
+**Python (BAD → GOOD):**
 ```python
 agent = Agent(instructions="You are a helpful assistant.")
 ```
-
-### GOOD (Python) -- managed prompt:
 ```python
 import langwatch
 prompt = langwatch.prompts.get("my-agent")
 agent = Agent(instructions=prompt.compile().messages[0]["content"])
 ```
 
-### BAD (TypeScript) -- hardcoded prompt:
+**TypeScript (BAD → GOOD):**
 ```typescript
 const systemPrompt = "You are a helpful assistant.";
 ```
-
-### GOOD (TypeScript) -- managed prompt:
 ```typescript
 const langwatch = new LangWatch();
 const prompt = await langwatch.prompts.get("my-agent");
 ```
 
-CRITICAL: Do NOT wrap `langwatch.prompts.get()` in a try/catch with a hardcoded fallback string. The entire point of prompt versioning is that prompts are managed externally. A fallback defeats this by silently reverting to a stale hardcoded copy.
+CRITICAL: Do NOT wrap `langwatch.prompts.get()` in a try/catch with a hardcoded fallback string. The whole point of prompt versioning is that prompts are managed externally. A fallback defeats this by silently reverting to a stale hardcoded copy.
 
-## Step 7: Sync Prompts to the Platform
+## Step 5: Sync to the Platform
 
 ```bash
 langwatch prompt sync
 ```
 
-This pushes your local prompt definitions to the LangWatch platform.
+## Step 6: Tag Versions for Deployment
 
-## Step 8: Verify
+Three built-in tags: `latest` (auto-assigned), `production`, `staging`. Update code to fetch by tag:
 
-Check that your prompts appear on https://app.langwatch.ai in the Prompts section.
+```python
+prompt = langwatch.prompts.get("my-agent", tag="production")
+```
+```typescript
+const prompt = await langwatch.prompts.get("my-agent", { tag: "production" });
+```
+
+Assign tags via the CLI (or the Deploy dialog in the LangWatch UI):
+
+```bash
+langwatch prompt tag assign my-agent production
+```
+
+For canary or blue/green deployments, create custom tags with `langwatch prompt tag create`.
+
+## Step 7: Verify
+
+Run `langwatch prompt list` to confirm everything synced, or open the Prompts section in the LangWatch app.
 
 ## Common Mistakes
 
-- Do NOT hardcode prompts in application code — always use `langwatch.prompts.get()` to fetch managed prompts
-- Do NOT duplicate prompt text as a fallback (no try/catch around `prompts.get` with a hardcoded string) — this silently defeats versioning
-- Do NOT manually edit `prompts.json` — use the CLI commands (`langwatch prompt init`, `langwatch prompt create`, `langwatch prompt sync`)
-- Do NOT skip `langwatch prompt sync` — prompts must be synced to the platform after creation
+- Do NOT hardcode prompts — always fetch via `langwatch.prompts.get()`
+- Do NOT add a hardcoded fallback string in a try/catch — that silently defeats versioning
+- Do NOT manually edit `prompts.json` — use the CLI
+- Do NOT skip `langwatch prompt sync` after creating prompts
