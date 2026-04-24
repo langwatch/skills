@@ -11,11 +11,13 @@ compatibility: Works with Claude Code and similar coding agents. The `langwatch`
 ## Determine Scope
 
 If the user's request is **general** ("instrument my code", "add tracing", "set up observability"):
+
 - Read the full codebase to understand the agent's architecture
 - Study git history to understand what changed and why — focus on agent behavior changes, prompt tweaks, bug fixes. Read commit messages for context.
 - Add comprehensive tracing across all LLM call sites
 
 If the user's request is **specific** ("add tracing to the payment function", "trace this endpoint"):
+
 - Focus on the specific function or module
 - Add tracing only where requested
 - Verify the instrumentation works in context
@@ -24,7 +26,19 @@ This skill is code-only — there is no platform path for tracing. If the user h
 
 ## Step 1: Read the Integration Docs
 
-See [CLI Setup](_shared/cli-setup.md).
+Use `langwatch docs <path>` to read documentation as Markdown. Some useful entry points:
+
+```bash
+langwatch docs                                    # Docs index
+langwatch docs integration/python/guide           # Python integration
+langwatch docs integration/typescript/guide       # TypeScript integration
+langwatch docs prompt-management/cli              # Prompts CLI
+langwatch scenario-docs                           # Scenario docs index
+```
+
+Discover commands with `langwatch --help` and `langwatch <subcommand> --help`. List and get commands accept `--format json` for machine-readable output. Read the docs first instead of guessing SDK APIs or CLI flags.
+
+If no shell is available, fetch the same Markdown over plain HTTP — append `.md` to any docs path (e.g. https://langwatch.ai/docs/integration/python/guide.md). Index: https://langwatch.ai/docs/llms.txt. Scenario index: https://langwatch.ai/scenario/llms.txt
 
 Then fetch the integration guide for this project's framework:
 
@@ -50,6 +64,7 @@ If install fails due to peer dependency conflicts, widen the conflicting range a
 Follow the integration guide you read in Step 1. The general shape is:
 
 **Python:**
+
 ```python
 import langwatch
 langwatch.setup()
@@ -60,6 +75,7 @@ def my_function():
 ```
 
 **TypeScript:**
+
 ```typescript
 import { LangWatch } from "langwatch";
 const langwatch = new LangWatch();

@@ -27,12 +27,14 @@ Use evaluations when you have many examples with clear correct answers, or for C
 ## Determine Scope
 
 If the user's request is **general** ("set up evaluations"):
+
 - Read the codebase to understand the agent
 - Study git history to understand what changed and why — focus on agent behavior changes, prompt tweaks, bug fixes. Read commit messages for context.
 - Set up an experiment + evaluator + dataset
 - After the experiment is working, summarize results and suggest improvements (consultant mode — see end of skill).
 
 If the user's request is **specific** ("add a faithfulness evaluator"):
+
 - Focus on the specific need
 - Create the targeted evaluator, dataset, or experiment
 - Verify it works
@@ -45,11 +47,32 @@ Some features are code-only (experiments, guardrails) and some are platform-only
 
 ## Plan Limits
 
-See [Plan Limits](_shared/plan-limits.md).
+LangWatch's free plan has limits on prompts, scenarios, evaluators, experiments, and datasets. When you hit a limit, the API returns `"Free plan limit of N reached..."` with an upgrade link.
+
+How to handle:
+
+- Work within the limits — if 3 scenarios are allowed, create 3 meaningful ones, not 10.
+- Make every creation count: each one should demonstrate clear value.
+- Show what works FIRST. If you hit a limit, summarize what was accomplished and direct the user to upgrade at https://app.langwatch.ai/settings/subscription.
+- Do NOT delete existing resources to make room, and do NOT reuse a scenario set to cram in more tests.
+
+If `LANGWATCH_ENDPOINT` is set in `.env`, the user is self-hosted — direct them to `{LANGWATCH_ENDPOINT}/settings/license` instead
 
 ## Prerequisites
 
-See [CLI Setup](_shared/cli-setup.md).
+Use `langwatch docs <path>` to read documentation as Markdown. Some useful entry points:
+
+```bash
+langwatch docs                                    # Docs index
+langwatch docs integration/python/guide           # Python integration
+langwatch docs integration/typescript/guide       # TypeScript integration
+langwatch docs prompt-management/cli              # Prompts CLI
+langwatch scenario-docs                           # Scenario docs index
+```
+
+Discover commands with `langwatch --help` and `langwatch <subcommand> --help`. List and get commands accept `--format json` for machine-readable output. Read the docs first instead of guessing SDK APIs or CLI flags.
+
+If no shell is available, fetch the same Markdown over plain HTTP — append `.md` to any docs path (e.g. https://langwatch.ai/docs/integration/python/guide.md). Index: https://langwatch.ai/docs/llms.txt. Scenario index: https://langwatch.ai/scenario/llms.txt
 
 Then read the evaluations overview:
 
@@ -70,6 +93,7 @@ Create a script or notebook that runs the agent against a dataset and measures q
 4. Create the experiment file:
 
 **Python (Jupyter):**
+
 ```python
 import langwatch
 import pandas as pd
@@ -93,6 +117,7 @@ for index, row in evaluation.loop(df.iterrows()):
 ```
 
 **TypeScript:**
+
 ```typescript
 import { LangWatch } from "langwatch";
 
@@ -186,6 +211,7 @@ Use `langwatch dataset --help` for create/upload/download. Generate data tailore
 | Summarizer | Documents with expected summaries |
 
 CRITICAL: The dataset MUST be specific to what the agent ACTUALLY does. Before generating any data:
+
 1. Read the agent's system prompt word by word
 2. Read the agent's function signatures and tool definitions
 3. Understand the agent's domain, persona, and constraints
@@ -196,7 +222,15 @@ Then generate data reflecting EXACTLY this agent's real-world usage. NEVER use g
 
 Once the experiment is working, summarize results and suggest 2-3 domain-specific improvements based on what you learned from the codebase.
 
-See [Consultant Mode](_shared/consultant-mode.md).
+After delivering initial results, transition to consultant mode to help the user get maximum value.
+
+**Phase 1 — read first.** Before generating ANY content: read the codebase end-to-end (every system prompt, function, tool definition), study git history for agent-related changes (`git log --oneline -30`, then drill into prompt/agent/eval-related commits — the WHY in commit messages matters more than the WHAT), and read READMEs and comments for domain context.
+
+**Phase 2 — quick wins.** Generate best-effort content based on what you learned. Run everything, iterate until green. Show the user what works — the a-ha moment.
+
+**Phase 3 — go deeper.** Once Phase 2 lands, summarize what you delivered, then suggest 2-3 specific improvements grounded in the codebase: domain edge cases, areas that need expert terminology or real data, integration points (APIs, databases, file uploads), or regression patterns from git history that deserve test coverage. Ask light questions with options, not open-ended ("Want scenarios for X or Y?", "I noticed Z was a recurring issue — add a regression test?", "Do you have real customer queries I could use?"). Respect "that's enough" and wrap up cleanly.
+
+Do NOT ask permission before Phase 1 and 2 — deliver value first. Do NOT ask generic questions or overwhelm with too many suggestions. Do NOT generate generic datasets — everything must reflect the actual domain.
 
 ## Common Mistakes
 

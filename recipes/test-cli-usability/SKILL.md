@@ -19,6 +19,7 @@ This recipe helps you write scenario tests that verify your CLI tool works well 
 ## Prerequisites
 
 Install the Scenario SDK:
+
 ```bash
 npm install @langwatch/scenario vitest @ai-sdk/openai
 # or: pip install langwatch-scenario pytest
@@ -27,6 +28,7 @@ npm install @langwatch/scenario vitest @ai-sdk/openai
 ## Step 1: Identify Your CLI Commands
 
 List every command your CLI supports. For each, note:
+
 - Does it require interactive input? (MUST have a non-interactive alternative)
 - What flags/options does it accept?
 - What does it output on success/failure?
@@ -86,6 +88,7 @@ If this assertion fails, your CLI has an interactivity bug -- add `--yes`, `--fo
 ## Step 4: Test Error Recovery
 
 Write scenarios where the agent makes a mistake and must recover:
+
 - Wrong command name -> agent reads `--help` and self-corrects
 - Missing required argument -> agent reads error message and retries
 - Authentication failure -> agent follows instructions in error output

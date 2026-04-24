@@ -13,7 +13,19 @@ This recipe uses the `langwatch` CLI to inspect your production traces and ident
 
 ## Prerequisites
 
-See [CLI Setup](_shared/cli-setup.md).
+Use `langwatch docs <path>` to read documentation as Markdown. Some useful entry points:
+
+```bash
+langwatch docs                                    # Docs index
+langwatch docs integration/python/guide           # Python integration
+langwatch docs integration/typescript/guide       # TypeScript integration
+langwatch docs prompt-management/cli              # Prompts CLI
+langwatch scenario-docs                           # Scenario docs index
+```
+
+Discover commands with `langwatch --help` and `langwatch <subcommand> --help`. List and get commands accept `--format json` for machine-readable output. Read the docs first instead of guessing SDK APIs or CLI flags.
+
+If no shell is available, fetch the same Markdown over plain HTTP — append `.md` to any docs path (e.g. https://langwatch.ai/docs/integration/python/guide.md). Index: https://langwatch.ai/docs/llms.txt. Scenario index: https://langwatch.ai/scenario/llms.txt
 
 ## Step 1: Fetch Recent Traces
 
@@ -24,6 +36,7 @@ langwatch trace search --limit 25 --start-date 2026-01-01 --format json
 (Adjust `--start-date` to "last 24h" or "last 7d" — the CLI accepts ISO strings.)
 
 For each trace, ask:
+
 - How many traces are there?
 - Do they have inputs and outputs populated, or are they `<empty>`?
 - Are there labels and metadata (user_id, thread_id)?
@@ -58,6 +71,7 @@ langwatch docs integration/typescript/guide     # TypeScript (or your framework)
 ## Step 4: Apply Fixes
 
 For each issue found:
+
 1. Identify the root cause in the code
 2. Apply the fix following the framework-specific docs
 3. Run the application to generate new traces
@@ -66,11 +80,13 @@ For each issue found:
 ## Step 5: Verify Improvement
 
 After fixes, compare before/after:
+
 - Are inputs/outputs now populated?
 - Are spans properly nested?
 - Are labels and metadata present?
 
 You can also export a sample for diff:
+
 ```bash
 langwatch trace export --format jsonl --limit 50 -o traces.jsonl
 ```

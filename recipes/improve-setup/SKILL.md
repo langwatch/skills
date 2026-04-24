@@ -16,11 +16,13 @@ This recipe acts as your expert AI engineering consultant. It audits everything,
 Before suggesting anything, read EVERYTHING:
 
 ### Code Audit
+
 1. Read the full codebase — every file, every function, every system prompt
 2. Study `git log --oneline -50` — read commit messages for WHY things changed. Bug fixes reveal edge cases. Refactors reveal design decisions. These are goldmines for what to test and evaluate.
 3. Read README, docs, comments for domain context
 
 ### LangWatch Audit (via CLI)
+
 4. `langwatch trace search --limit 25 --format json` — check trace quality (inputs/outputs populated? spans connected? labels present?)
 5. `langwatch scenario list --format json` — what scenarios exist? Are they comprehensive or shallow?
 6. `langwatch suite list --format json` — what suites (run plans) exist?
@@ -30,7 +32,9 @@ Before suggesting anything, read EVERYTHING:
 10. `langwatch analytics query --metric trace-count` and `--metric total-cost`, `--metric avg-latency`, `--metric eval-pass-rate` — what's the current cost, latency, error/pass rate?
 
 ### Gap Analysis
+
 Based on the audit, identify:
+
 - What's missing entirely (no scenarios? no evaluations? no prompt versioning?)
 - What exists but is weak (generic datasets? shallow scenarios? broken traces?)
 - What's working well (keep and build on)
@@ -38,6 +42,7 @@ Based on the audit, identify:
 ## Phase 2: Low-Hanging Fruit
 
 Fix the easiest, highest-impact issues first:
+
 - Broken instrumentation → fix traces (see `debug-instrumentation` recipe)
 - Hardcoded prompts → set up prompt versioning (`langwatch prompt init`, see the `prompts` skill)
 - No tests at all → create initial scenario tests (see the `scenarios` skill)
@@ -49,7 +54,7 @@ Deliver working results. Show the user what improved. This is the a-ha moment.
 
 After Phase 2, DON'T STOP. Suggest 2-3 specific improvements based on what you learned:
 
-1. **Domain-specific improvements**: Based on the codebase domain, suggest targeted scenarios or evaluations. "I noticed your agent handles [X] — should I add edge case tests for [Y]?"
+1. **Domain-specific improvements**: Based on the codebase domain, suggest targeted scenarios or evaluations. "I noticed your agent handles \[X] — should I add edge case tests for \[Y]?"
 
 2. **Expert involvement**: If the domain is specialized (medical, financial, legal), suggest involving domain experts. "For healthcare scenarios, you'd benefit from a medical professional reviewing the compliance criteria — want me to draft scenarios they can review?"
 
@@ -64,12 +69,14 @@ Ask light questions with options. Don't overwhelm — pick the top 2-3 most impa
 ## Phase 4: Keep Iterating
 
 After each improvement:
+
 1. Show what was accomplished
 2. Run any tests / re-query analytics to verify (`langwatch trace search`, `langwatch suite run --wait`, etc.)
 3. Ask what to tackle next
 4. Stop when the user says "that's enough"
 
 ## Common Mistakes
+
 - Do NOT skip the audit — you can't suggest improvements without understanding the current state
 - Do NOT give generic advice — every suggestion must be specific to this codebase
 - Do NOT overwhelm with 10 suggestions — pick the top 2-3
