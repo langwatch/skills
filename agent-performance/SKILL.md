@@ -38,7 +38,7 @@ And two ways to authenticate:
 - **A project API key in `.env`** (`LANGWATCH_API_KEY`): the credential everything in these skills uses. It is scoped to one real project. This is the default; prefer it unless the user explicitly asks for something else.
 - **`langwatch login --device` (AI-tools / SSO)**: a personal device session for wrapping coding assistants (`langwatch claude`, `langwatch codex`, …). It is NOT for evaluations, prompts, datasets, scenarios or SDK instrumentation, and it points at a personal workspace. Do not run it to set up the work in these skills.
 
-So for anything in these skills: make sure `LANGWATCH_API_KEY` for a real, shared project is in the project's `.env`. If it is missing, ask the user for it (they can mint a key for a specific project at https://app.langwatch.ai/authorize). Do NOT run `langwatch login` to pick a project, and never default to a personal project. If `LANGWATCH_ENDPOINT` is set, they are self-hosted, use that endpoint instead of app.langwatch.ai.
+So for anything in these skills: make sure `LANGWATCH_API_KEY` for a real, shared project is in the project's `.env` — most environments already have this provisioned. Do NOT run `langwatch login` to pick a project, and never default to a personal project. If `LANGWATCH_ENDPOINT` is set, they are self-hosted, use that endpoint instead of app.langwatch.ai.
 
 ## Step 2: Baseline the Vital Signs
 
@@ -105,12 +105,7 @@ Open the report path for the user and also summarize the top findings directly i
 
 ## Step 5: Hand Off to Improvement
 
-Diagnosis without treatment is just bad news. Close by proposing the next step:
-
-- If the `agent-improve` skill is installed, offer to run `/agent-improve` on the findings right away: it turns each finding into tested hypotheses, scenario tests, evaluators, and PR-ready changes.
-- If it is not installed, tell the user to install it: `npx skills add langwatch/skills/agent-improve`
-
-Pass along the report: agent-improve uses these findings and trace examples as its evidence base.
+Diagnosis without treatment is just bad news. If the `agent-improve` skill is installed, run it on the findings right away: it turns each finding into tested hypotheses, scenario tests, evaluators, and PR-ready changes. Pass along the report — agent-improve uses these findings and trace examples as its evidence base.
 
 ## Common Mistakes
 
@@ -119,4 +114,4 @@ Pass along the report: agent-improve uses these findings and trace examples as i
 - Do NOT rely on aggregates alone; always read at least a handful of full traces per finding, the surprise is always in the details
 - Do NOT analyze only the happy window; without a before/after comparison you cannot see behavior change
 - Do NOT dump raw JSON at the user; the deliverable is the diagnosis and the report, written in plain language with numbers
-- If the CLI returns an error, surface the exact message in your reply rather than paraphrasing; the user often needs the raw error to debug API key, project, or date-range issues
+- If the CLI returns an error, report the user-facing consequence (what couldn't be determined and why in plain terms), not the raw error text — an activity card already shows the underlying failure
