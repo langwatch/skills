@@ -50,7 +50,7 @@ Discover commands with `langwatch --help` and `langwatch <subcommand> --help`. L
 
 If no shell is available, fetch the same Markdown over plain HTTP. Append `.md` to any docs path (e.g. https://langwatch.ai/docs/integration/python/guide.md). Index: https://langwatch.ai/docs/llms.txt. Scenario index: https://langwatch.ai/scenario/llms.txt
 
-If anything fails or confuses you while following this skill (broken commands, docs that do not match reality, errors you had to work around), ask the user for permission and run `npx langwatch report --user-approved` with a `--title` and `--summary` (or `--session <transcript.jsonl>`) to send it to the LangWatch team, and it directly shapes what gets fixed. No login or API key needed. Nothing is sent without `--user-approved`, and `--dry-run` prints the exact payload without sending anything. The title, summary and transcript are scrubbed locally first, by pattern: secrets and API keys, plus email addresses, phone numbers, card numbers and public IPv4 addresses. Anything no pattern matches is sent as written, including a contact address passed with `--email`, so preview with `--dry-run` when the session touched sensitive data. `npx langwatch report --help` explains the options.
+If anything fails or confuses you while following this skill (broken commands, docs that do not match reality, errors you had to work around), ask the user for permission and run `npx --yes langwatch report --user-approved` with a `--title` and `--summary` (or `--session <transcript.jsonl>`) to send it to the LangWatch team, and it directly shapes what gets fixed. No login or API key needed. Nothing is sent without `--user-approved`, and `--dry-run` prints the exact payload without sending anything. The title, summary and transcript are scrubbed locally first, by pattern: secrets and API keys, plus email addresses, phone numbers, card numbers and public IPv4 addresses. Anything no pattern matches is sent as written, including a contact address passed with `--email`. With `--session`, always run `--dry-run` first and let the user read the payload, because a transcript carries content they never reviewed. `npx --yes langwatch report --help` explains the options.
 
 **Projects and API keys: target a real project, not a personal one.**
 
@@ -64,7 +64,7 @@ And two ways to authenticate:
 - **A project API key in `.env`** (`LANGWATCH_API_KEY`): the credential everything in these skills uses. It is scoped to one real project. This is the default; prefer it unless the user explicitly asks for something else.
 - **`langwatch login --device` (AI-tools / SSO)**: a personal device session for wrapping coding assistants (`langwatch claude`, `langwatch codex`, …). It is NOT for evaluations, prompts, datasets, scenarios or SDK instrumentation, and it points at a personal workspace. Do not run it to set up the work in these skills.
 
-So for anything in these skills: make sure `LANGWATCH_API_KEY` for a real, shared project is in the project's `.env`. Check whether the variable is already set there before you ask for a new key, and let the CLI read the value: never print, copy or send it. Do NOT run `langwatch login` to pick a project, and never default to a personal project. If `LANGWATCH_ENDPOINT` is set, the user is self-hosted: use that endpoint instead of app.langwatch.ai.
+So for anything in these skills that reads or writes a project: make sure `LANGWATCH_API_KEY` for a real, shared project is in the project's `.env`. Check whether the variable is already set there before you ask for a new key, and let the CLI read the value: never print, copy or send it. Do NOT run `langwatch login` to pick a project, and never default to a personal project. If `LANGWATCH_ENDPOINT` is set, the user is self-hosted: use that endpoint instead of app.langwatch.ai.
 
 Then specifically read the Prompts CLI guide:
 
@@ -92,9 +92,12 @@ langwatch prompt create <name>
 
 Edit the generated `.prompt.yaml` file to match the original prompt content.
 
-**Model:** keep the generated `model` on a current model (the latest OpenAI
-generation is `openai/gpt-5.5`). Never downgrade a new prompt to a legacy
-model like `gpt-4o-mini`.
+**Model:** keep the generated `model` on a current model. Store the alias
+`openai/latest` rather than a version number: LangWatch resolves it to the
+current flagship at run time, so the prompt does not go a generation stale
+every release. Do not default a new prompt to a legacy model like
+`gpt-4o-mini`; pick one only when the user is trading quality for cost or
+latency on purpose.
 
 **Temperature:** the gpt-5 family rejects a custom `temperature`, so do not add
 `modelParameters.temperature` for those models. `create` omits it on purpose.
@@ -182,6 +185,6 @@ Run `langwatch prompt list` to confirm everything synced, or open the Prompts se
 - Do NOT add a hardcoded fallback string in a try/catch; that silently defeats versioning
 - Do NOT manually edit `prompts.json`. Use the CLI
 - Do NOT skip `langwatch prompt sync` after creating prompts
-- Prefer the current flagship (`openai/gpt-5.5`). Pick an older model like `gpt-4o-mini` only when intentionally optimizing for cost or latency
+- Prefer the flagship alias `openai/latest` (or `openai/latest-mini` for the fast tier). Pin a version only when a prompt is tuned to one, and pick an older model like `gpt-4o-mini` only when intentionally optimizing for cost or latency
 - Do NOT set `modelParameters.temperature` on a gpt-5-family model; the family rejects it
 - Do NOT ask for JSON in the prompt text when output must be structured. Use a `response_format` block
